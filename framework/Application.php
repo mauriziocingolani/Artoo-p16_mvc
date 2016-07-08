@@ -4,6 +4,8 @@ final class Application {
     # singleton: una e una sola istanza
 
     private static $_istanza;
+    private $_config;
+    public $db;
 
     private function __construct() {
         
@@ -27,7 +29,7 @@ final class Application {
                 $metodo = 'action' . $this->_primaLetteraMaiuscola($ca['action']);
                 if (method_exists($controller, $metodo)) :
                     $c = new $controller;
-                    $c->_cartella=$ca['controller'];
+                    $c->_cartella = $ca['controller'];
                     $c->$metodo();
                 else :
                     die('Azione ' . $metodo . ' non presente nel controller ' . $controller . ' :-(');
@@ -40,9 +42,24 @@ final class Application {
         endif;
     }
 
-    public static function GetIstanza() {
+    public static function GetIstanza(array $config = null) {
         if (self::$_istanza == null)
             self::$_istanza = new self;
+        if (self::$_istanza->_config == null) :
+            self::$_istanza->_config = $config;
+            # connessione daatabase
+            if (isset($config['db'])) :
+                self::$_istanza->db = new mysqli(
+                        $config['db']['host']
+                        , $config['db']['user']
+                        , $config['db']['password']
+                        , $config['db']['database']
+                );
+                if (self::$_istanza->db->connect_errno > 0) :
+                    throw new Exception(self::$_istanza->db->connect_error, self::$_istanza->db->connect_errno);
+                endif;
+            endif;
+        endif;
         return self::$_istanza;
     }
 
