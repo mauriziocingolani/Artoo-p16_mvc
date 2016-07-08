@@ -26,6 +26,9 @@ final class Application {
             if (class_exists($controller)) :
                 $metodo = 'action' . $this->_primaLetteraMaiuscola($ca['action']);
                 if (method_exists($controller, $metodo)) :
+                    $c = new $controller;
+                    $c->_cartella=$ca['controller'];
+                    $c->$metodo();
                 else :
                     die('Azione ' . $metodo . ' non presente nel controller ' . $controller . ' :-(');
                 endif;
