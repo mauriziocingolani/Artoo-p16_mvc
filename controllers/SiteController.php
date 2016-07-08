@@ -1,5 +1,7 @@
 <?php
 
+require './models/Utente.php';
+
 class SiteController extends Controller {
 
     public $layout = 'main';
@@ -7,7 +9,8 @@ class SiteController extends Controller {
 
     public function actionHome() {
         $utenti = array('pippo', 'pluto', 'paperino');
-        Application::GetIstanza()->db;
+//        Application::GetIstanza()->db;
+        var_dump(Utente::FindByPk(1));
         # render
         $this->render('home', array('utenti' => $utenti, 'titolo' => 'Home page'));
     }

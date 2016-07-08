@@ -5,6 +5,10 @@ final class Application {
 
     private static $_istanza;
     private $_config;
+    /**
+     *
+     * @var mysqli
+     */
     public $db;
 
     private function __construct() {
