@@ -11,15 +11,8 @@ class TabellaDatabase {
         $query = "SELECT * FROM " . static::$nomeTabella . ' WHERE ' . static::GetPk() . '=' . $pk;
         $result = $db->query($query);
         if ($result->num_rows == 1) :
-            $obj = new static;
             $r = $result->fetch_object();
-            foreach ($r as $prop => $value) :
-                # verificare tipologia del campo
-                # cast a intero per i valori dei campi di categoria intera
-                # assegnazione semplice per stringhe e per tutti gli altri
-                $obj->$prop = $value;
-            endforeach;
-            return $obj;
+            return static::_GetRecordObject($r);
         endif;
         return null;
     }
@@ -34,11 +27,7 @@ class TabellaDatabase {
         if ($result->num_rows > 0) :
             $data = array();
             while (($r = $result->fetch_object()) != null) :
-                $obj = new static;
-                foreach ($r as $prop => $value) :
-                    $obj->$prop = $value;
-                endforeach;
-                $data[] = $obj;
+                $data[] = static::_GetRecordObject($r);
             endwhile;
             return $data;
         endif;
@@ -56,11 +45,7 @@ class TabellaDatabase {
         if ($result->num_rows > 0) :
             $data = array();
             while (($r = $result->fetch_object()) != null) :
-                $obj = new static;
-                foreach ($r as $prop => $value) :
-                    $obj->$prop = $value;
-                endforeach;
-                $data[] = $obj;
+                $data[] = static::_GetRecordObject($r);
             endwhile;
             return $data;
         endif;
@@ -94,6 +79,26 @@ class TabellaDatabase {
             endif;
             static::$fields[$r->Field] = $r->Type;
         endwhile;
+    }
+
+    private static function _GetRecordObject($r) {
+        $obj = new static;
+        $fields = static::GetFields();
+        foreach ($r as $prop => $value) : 
+            $type = $fields[$prop];
+            if (is_integer(strpos($type, 'int('))) :
+                $obj->$prop = (int) $value;
+            elseif (is_integer(strpos($type, 'char(')) || is_integer(strpos($type, 'text'))) :
+                $obj->$prop = $value;
+            elseif (is_integer(strpos($type, 'datetime'))) :
+                $obj->$prop = $value;
+                $a = "{$prop}TS";
+                $obj->$a = strtotime($value);
+            else :
+                $obj->$prop = $value;
+            endif;
+        endforeach;
+        return $obj;
     }
 
 }
