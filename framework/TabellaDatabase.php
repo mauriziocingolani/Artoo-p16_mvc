@@ -5,6 +5,49 @@ class TabellaDatabase {
     protected static $nomeTabella;
     protected static $pk;
     protected static $fields;
+    public $newRecord = true;
+    private $_primaryKey;
+
+    public function save() {
+        if (!$this->newRecord) :
+            $query = "UPDATE " . static::$nomeTabella . ' SET ';
+            $fields = static::GetFields();
+            $blocchi = array();
+            foreach ($fields as $nomeCampo => $type) :
+                if (is_integer(strpos($type, 'int('))) :
+                    $valoreCampo = $this->$nomeCampo;
+                elseif (is_integer(strpos($type, 'char(')) || is_integer(strpos($type, 'text'))) :
+                    $valoreCampo = "'" . str_replace("'", "''", $this->$nomeCampo) . '\'';
+                elseif (is_integer(strpos($type, 'datetime'))) :
+                    $valoreCampo = "'" . str_replace("'", "''", $this->$nomeCampo) . '\'';
+                    $a = "{$nomeCampo}TS";
+                    $this->$a = strtotime($valoreCampo);
+                else :
+                    $valoreCampo = $this->$nomeCampo;
+                endif;
+                $s = $nomeCampo . ' = ' . $valoreCampo;
+                $blocchi[] = $s;
+            endforeach;
+            $query = $query . join(', ', $blocchi) . " WHERE " . static::GetPk() . ' = ' . $this->_primaryKey;
+            Application::GetIstanza()->db->query($query);
+            return true;
+        endif;
+    }
+
+    public function delete() {
+        $this->beforeDelete();
+        $query = "DELETE FROM " . static::$nomeTabella . " WHERE " . static::GetPk() . ' = ' . $this->_primaryKey;
+        var_dump($query);
+        $this->afterDelete();
+    }
+
+    public function beforeDelete() {
+        var_dump('beforeDelete non fa niente!');
+    }
+
+    public function afterDelete() {
+        var_dump('afterDelete non fa niente!');
+    }
 
     public static function FindByPk($pk) {
         $db = Application::GetIstanza()->db;
@@ -83,8 +126,10 @@ class TabellaDatabase {
 
     private static function _GetRecordObject($r) {
         $obj = new static;
+        $obj->newRecord = false;
         $fields = static::GetFields();
-        foreach ($r as $prop => $value) : 
+        $pk = static::GetPk();
+        foreach ($r as $prop => $value) :
             $type = $fields[$prop];
             if (is_integer(strpos($type, 'int('))) :
                 $obj->$prop = (int) $value;
@@ -96,6 +141,10 @@ class TabellaDatabase {
                 $obj->$a = strtotime($value);
             else :
                 $obj->$prop = $value;
+            endif;
+            # "salvo" il valore della pk sulla variabile private _primaryKey
+            if ($prop == $pk) :
+                $obj->_primaryKey = $value;
             endif;
         endforeach;
         return $obj;
