@@ -9,11 +9,12 @@ class SiteController extends Controller {
 
     public function actionHome() {
         $utenti = array('pippo', 'pluto', 'paperino');
-//        Application::GetIstanza()->db;
-        $utente = Utente::FindByPk(1);
-        var_dump(date('d/m/Y', $utente->CreatoTS));
-//        var_dump(Utente::FindAll('NomeUtente DESC'));
-//        var_dump(Utente::FindByCondition("NomeUtente='pippo' OR Abilitato=1"));
+        $utente = Utente::FindByPk(7);
+        $utente->Modificato = date('Y-m-d H:m:i');
+        $utente->Nome = 'Francesco';
+        $utente->Cognome = 'Rossi';
+        var_dump($utente->save());
+        #
         # render
         $this->render('home', array('utenti' => $utenti, 'titolo' => 'Home page'));
     }
