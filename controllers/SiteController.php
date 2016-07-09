@@ -14,7 +14,8 @@ class SiteController extends Controller {
         $utente->Nome = 'Francesco';
         $utente->Cognome = 'Rossi';
         var_dump($utente->save());
-        #
+        # solo per record esistenti!
+        $utente->delete();
         # render
         $this->render('home', array('utenti' => $utenti, 'titolo' => 'Home page'));
     }
